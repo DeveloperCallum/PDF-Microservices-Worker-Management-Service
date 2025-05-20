@@ -2,9 +2,7 @@ package com.willcocks.callum.workermanagementservice.rabbitmq.listener;
 
 import com.willcocks.callum.workermanagementservice.events.impl.ResponseFromQueueEvent;
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.ResponseService;
-import dto.DocumentQueueEntity;
-import dto.response.DocumentResponseEntity;
-import dto.response.ResponseEntity;
+import dto.response.SelectionResponseEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
@@ -20,7 +18,7 @@ public class ResponseToQueueHandler {
     }
 
     @EventListener
-    public void responseToQueueEventHandler(ResponseFromQueueEvent<DocumentResponseEntity> e){
-        responseService.setResponse(e.getData().getPageKey(), e.getData().getJobKey(), e.getData());
+    public void responseToQueueEventHandler(ResponseFromQueueEvent<SelectionResponseEntity> e){
+        responseService.setResponse(e.getData().getDocumentKey(), e.getData().getJobKey(), e.getData());
     }
 }

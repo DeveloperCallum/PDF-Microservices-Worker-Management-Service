@@ -9,7 +9,6 @@ import com.willcocks.callum.workermanagementservice.rabbitmq.service.manager.Doc
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.manager.ResponsesManager;
 import com.willcocks.callum.workermanagementservice.util.Configuration;
 import dto.DocumentQueueEntity;
-import dto.response.ResponseEntity;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -28,16 +27,15 @@ public class SubmitRequestToQueueHandler {
 
     @EventListener
     public void SubmitRequestToQueueEvent(SubmitRequestToQueueEvent event) {
-        UUID pageUUID = UUID.randomUUID();
+        UUID documentUUID = event.getJob().getDocumentUUID();
         PDFProcessingJob rq = event.getJob();
 
         //How many selections do we have? How many Job requests will that need?
         int totalNoRequests = (int) Math.ceil((double) rq.getSelection().size() / (double) Configuration.PAGES_PER_JOB);
 
-        //TODO: Change how tasks are distributed!
         DocumentResponseManager responsesManager = new DocumentResponseManager(applicationEventPublisher);
         responsesManager.setMinimumResponses(totalNoRequests);
-        responseService.putResponseManager(pageUUID, responsesManager);
+        responseService.putResponseManager(documentUUID, responsesManager); //TODO: Change to EXTRACTION UUID
 
         for (int requestNo = 0; requestNo < totalNoRequests; requestNo++) { //What request is this?
             int end = (requestNo * Configuration.PAGES_PER_JOB) + Configuration.PAGES_PER_JOB;
@@ -56,19 +54,20 @@ public class SubmitRequestToQueueHandler {
             }
 
             System.out.printf("Submit: Job-No: %d, Start: %d, End: %d, Size: %d, Selection-Data: %s\n", requestNo, start, end, threadSelection.size(), threadSelection.toString());
-            sendRequestToQueue(pageUUID, responsesManager, rq.getPdfBase64Document(), threadSelection);
+            sendRequestToQueue(documentUUID, rq.getSelectionUUID(), rq.getPdfBase64Document(), responsesManager, threadSelection);
         }
     }
 
-    private void sendRequestToQueue(UUID pageUUID, ResponsesManager<?> responsesManager, String getPdfBase64Document, Map<Integer, List<Selection>> selections) {
+    private void sendRequestToQueue(UUID documentUUID, UUID selectionUUID, String getPdfBase64Document, ResponsesManager<?> responsesManager, Map<Integer, List<Selection>> selections) {
         UUID jobUUID = UUID.randomUUID();
         DocumentQueueEntity entity = new DocumentQueueEntity();
         entity.setSelection(selections); //TODO: Only send relevant page selections.
         entity.setJobUUID(jobUUID);
-        entity.setPageUUID(pageUUID);
+        entity.setDocumentUUID(documentUUID);
         entity.setPdfBase64Document(getPdfBase64Document);
+        entity.setSelectionUUID(selectionUUID);
 
-        responsesManager.addExpectedResponse(pageUUID, jobUUID);
+        responsesManager.addExpectedResponse(documentUUID, jobUUID);
 
         PushToQueueEvent e = new PushToQueueEvent(this, entity);
         applicationEventPublisher.publishEvent(e);
