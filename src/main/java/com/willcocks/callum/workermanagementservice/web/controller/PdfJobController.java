@@ -23,6 +23,9 @@ public class PdfJobController {
         SubmitRequestToQueueEvent event = new SubmitRequestToQueueEvent(this, rq);
         applicationEventPublisher.publishEvent(event);
 
+        System.out.println(rq.getCallbackService());
+        System.out.println(rq.getCallbackURL());
+
         return ResponseEntity.status(202).body(new returnedResponse(rq.getDocumentUUID(), rq.getSelectionUUID(), rq.getCallbackURL(), rq.getCallbackService()));
     }
 
