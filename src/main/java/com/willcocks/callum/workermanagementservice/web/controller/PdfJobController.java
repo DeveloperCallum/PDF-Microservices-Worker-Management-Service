@@ -21,10 +21,10 @@ public class PdfJobController {
     @PostMapping("/extract")
     public ResponseEntity<?> extractPDFPageEndpoint(@RequestBody PDFProcessingJob rq) {
         SubmitRequestToQueueEvent event = new SubmitRequestToQueueEvent(this, rq);
-        applicationEventPublisher.publishEvent(event);
 
         System.out.println(rq.getCallbackService());
         System.out.println(rq.getCallbackURL());
+        applicationEventPublisher.publishEvent(event);
 
         return ResponseEntity.status(202).body(new returnedResponse(rq.getDocumentUUID(), rq.getSelectionUUID(), rq.getCallbackURL(), rq.getCallbackService()));
     }

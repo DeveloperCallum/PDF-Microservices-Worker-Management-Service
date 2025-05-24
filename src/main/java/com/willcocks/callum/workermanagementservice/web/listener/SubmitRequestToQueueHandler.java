@@ -30,6 +30,10 @@ public class SubmitRequestToQueueHandler {
         UUID documentUUID = event.getJob().getDocumentUUID();
         PDFProcessingJob rq = event.getJob();
 
+        if (rq.getSelectionUUID() == null){
+            throw new IllegalStateException("Missing selectionUUID");
+        }
+
         //How many selections do we have? How many Job requests will that need?
         int totalNoRequests = (int) Math.ceil((double) rq.getSelection().size() / (double) Configuration.PAGES_PER_JOB);
 
@@ -54,11 +58,11 @@ public class SubmitRequestToQueueHandler {
             }
 
             System.out.printf("Submit: Job-No: %d, Start: %d, End: %d, Size: %d, Selection-Data: %s\n", requestNo, start, end, threadSelection.size(), threadSelection.toString());
-            sendRequestToQueue(documentUUID, rq.getSelectionUUID(), rq.getPdfBase64Document(), responsesManager, threadSelection);
+            sendRequestToQueue(documentUUID, rq.getSelectionUUID(),rq.getCallbackService(), rq.getCallbackURL(), rq.getPdfBase64Document(), responsesManager, threadSelection);
         }
     }
 
-    private void sendRequestToQueue(UUID documentUUID, UUID selectionUUID, String getPdfBase64Document, ResponsesManager<?> responsesManager, Map<Integer, List<Selection>> selections) {
+    private void sendRequestToQueue(UUID documentUUID, UUID selectionUUID, String serviceName, String callbackURL, String getPdfBase64Document, ResponsesManager<?> responsesManager, Map<Integer, List<Selection>> selections) {
         UUID jobUUID = UUID.randomUUID();
         DocumentQueueEntity entity = new DocumentQueueEntity();
         entity.setSelection(selections); //TODO: Only send relevant page selections.
@@ -66,6 +70,8 @@ public class SubmitRequestToQueueHandler {
         entity.setDocumentUUID(documentUUID);
         entity.setPdfBase64Document(getPdfBase64Document);
         entity.setSelectionUUID(selectionUUID);
+        entity.setCallbackURL(callbackURL);
+        entity.setCallbackService(serviceName);
 
         responsesManager.addExpectedResponse(documentUUID, jobUUID);
 
