@@ -1,4 +1,4 @@
-package com.willcocks.callum.workermanagementservice.rabbitmq.listener;
+package com.willcocks.callum.workermanagementservice.listener;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

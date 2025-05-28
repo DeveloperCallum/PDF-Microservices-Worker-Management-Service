@@ -1,4 +1,4 @@
-package com.willcocks.callum.workermanagementservice.rabbitmq.listener;
+package com.willcocks.callum.workermanagementservice.listener;
 
 import com.willcocks.callum.workermanagementservice.events.impl.ResponseFromQueueEvent;
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.ResponseService;

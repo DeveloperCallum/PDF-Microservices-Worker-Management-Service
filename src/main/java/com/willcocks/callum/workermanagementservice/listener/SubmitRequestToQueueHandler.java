@@ -1,4 +1,4 @@
-package com.willcocks.callum.workermanagementservice.web.listener;
+package com.willcocks.callum.workermanagementservice.listener;
 
 import com.willcocks.callum.model.PDFProcessingJob;
 import com.willcocks.callum.model.data.Selection;
@@ -7,8 +7,10 @@ import com.willcocks.callum.workermanagementservice.events.impl.SubmitRequestToQ
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.ResponseService;
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.manager.DocumentResponseManager;
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.manager.ResponsesManager;
+import com.willcocks.callum.workermanagementservice.rabbitmq.service.WebhookCallback;
 import com.willcocks.callum.workermanagementservice.util.Configuration;
 import dto.DocumentQueueEntity;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -18,11 +20,12 @@ import java.util.*;
 @Component
 public class SubmitRequestToQueueHandler {
     private final ApplicationEventPublisher applicationEventPublisher;
-    ResponseService responseService;
-
-    public SubmitRequestToQueueHandler(ApplicationEventPublisher applicationEventPublisher, ResponseService responseService) {
+    private ResponseService responseService;
+    private DiscoveryClient discoveryClient;
+    public SubmitRequestToQueueHandler(ApplicationEventPublisher applicationEventPublisher, ResponseService responseService, DiscoveryClient discoveryClient) {
         this.applicationEventPublisher = applicationEventPublisher;
         this.responseService = responseService;
+        this.discoveryClient = discoveryClient;
     }
 
     @EventListener
@@ -37,8 +40,9 @@ public class SubmitRequestToQueueHandler {
         //How many selections do we have? How many Job requests will that need?
         int totalNoRequests = (int) Math.ceil((double) rq.getSelection().size() / (double) Configuration.PAGES_PER_JOB);
 
-        DocumentResponseManager responsesManager = new DocumentResponseManager(applicationEventPublisher);
+        DocumentResponseManager responsesManager = new DocumentResponseManager(applicationEventPublisher, new WebhookCallback<>(rq.getCallbackService(), rq.getCallbackURL(), discoveryClient));
         responsesManager.setMinimumResponses(totalNoRequests);
+        responsesManager.setDocumentUUID(rq.getDocumentUUID());
         responseService.putResponseManager(documentUUID, responsesManager); //TODO: Change to EXTRACTION UUID
 
         for (int requestNo = 0; requestNo < totalNoRequests; requestNo++) { //What request is this?
@@ -58,20 +62,16 @@ public class SubmitRequestToQueueHandler {
             }
 
             System.out.printf("Submit: Job-No: %d, Start: %d, End: %d, Size: %d, Selection-Data: %s\n", requestNo, start, end, threadSelection.size(), threadSelection.toString());
-            sendRequestToQueue(documentUUID, rq.getSelectionUUID(),rq.getCallbackService(), rq.getCallbackURL(), rq.getPdfBase64Document(), responsesManager, threadSelection);
+            sendRequestToQueue(documentUUID, rq.getPdfBase64Document(), responsesManager, threadSelection);
         }
     }
 
-    private void sendRequestToQueue(UUID documentUUID, UUID selectionUUID, String serviceName, String callbackURL, String getPdfBase64Document, ResponsesManager<?> responsesManager, Map<Integer, List<Selection>> selections) {
+    private void sendRequestToQueue(UUID documentUUID, String getPdfBase64Document, ResponsesManager<?> responsesManager, Map<Integer, List<Selection>> selections) {
         UUID jobUUID = UUID.randomUUID();
-        DocumentQueueEntity entity = new DocumentQueueEntity();
-        entity.setSelection(selections); //TODO: Only send relevant page selections.
-        entity.setJobUUID(jobUUID);
-        entity.setDocumentUUID(documentUUID);
-        entity.setPdfBase64Document(getPdfBase64Document);
-        entity.setSelectionUUID(selectionUUID);
-        entity.setCallbackURL(callbackURL);
-        entity.setCallbackService(serviceName);
+        DocumentQueueEntity entity = new DocumentQueueEntity(jobUUID, documentUUID, getPdfBase64Document,selections);
+        entity.getDocument().setSelection(selections);
+        entity.getDocument().setDocumentUUID(documentUUID);
+        entity.getDocument().setPdfBase64Document(getPdfBase64Document);
 
         responsesManager.addExpectedResponse(documentUUID, jobUUID);
 

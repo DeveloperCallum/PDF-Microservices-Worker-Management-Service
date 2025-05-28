@@ -1,6 +1,6 @@
 package com.willcocks.callum.workermanagementservice.util;
 
-import com.willcocks.callum.workermanagementservice.rabbitmq.listener.JobCompletedHandler;
+import com.willcocks.callum.workermanagementservice.listener.JobCompletedHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

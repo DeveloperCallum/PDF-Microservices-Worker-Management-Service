@@ -1,4 +1,4 @@
-package com.willcocks.callum.workermanagementservice.web.controller;
+package com.willcocks.callum.workermanagementservice.webcontroller;
 
 import com.willcocks.callum.model.PDFProcessingJob;
 import com.willcocks.callum.workermanagementservice.events.impl.SubmitRequestToQueueEvent;
