@@ -9,6 +9,8 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.client.RestClient;
+
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.function.Consumer;
 
@@ -39,33 +41,22 @@ public class WebhookCallback<T> implements Consumer<T> {
         this.callbackURL = callbackURL;
     }
 
-    //TODO: HTTPs?
-    @Retryable(
-            maxAttempts = 3, // Number of retries
-            backoff = @Backoff(delay = 5000) // Delay in milliseconds (5 seconds)
-    )
     @Override
     public void accept(T t) {
         ServiceInstance serviceInstance = discoveryClient.getInstances(serviceName).get(0);
 
         System.out.println("URL: " + serviceInstance.getUri() + "/" + callbackURL); //TODO: SEND REQUEST TO URL!
 
-        RestClient customClient = RestClient.builder()
-                .requestFactory(new HttpComponentsClientHttpRequestFactory())
-                .baseUrl(serviceInstance.getUri())
-                .build();
+        RestClient customClient = RestClient.builder().requestFactory(new HttpComponentsClientHttpRequestFactory()).baseUrl(serviceInstance.getUri()).build();
 
-        ResponseEntity<Void> response = customClient.method(HttpMethod.POST)
-                .uri(callbackURL)
-                .body(t)
-                .retrieve()
-                .toBodilessEntity();
+        ResponseEntity<Void> response = customClient.method(HttpMethod.POST).uri(callbackURL).body(t).retrieve().toBodilessEntity();
 
         System.out.println("Status Code: " + response.getStatusCode());
 
-        if (response.getStatusCode() != HttpStatusCode.valueOf(202)){
+        if (response.getStatusCode() != HttpStatusCode.valueOf(202)) {
             System.out.println("Issue sending callback!");
             //TODO? Event?
+            throw new IllegalStateException("sent HTTP request to server, server responded with an error.");
         }
     }
 }
