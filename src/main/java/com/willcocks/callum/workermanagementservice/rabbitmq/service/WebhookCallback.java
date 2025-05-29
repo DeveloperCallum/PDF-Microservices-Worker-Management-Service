@@ -12,11 +12,16 @@ import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 
 public class WebhookCallback<T> implements Consumer<T> {
     private String serviceName;
     private String callbackURL;
+
+    private static Random random = new Random();
     private final DiscoveryClient discoveryClient;
 
     public WebhookCallback(String serviceName, String callbackURL, DiscoveryClient discoveryClient) {
@@ -43,7 +48,13 @@ public class WebhookCallback<T> implements Consumer<T> {
 
     @Override
     public void accept(T t) {
-        ServiceInstance serviceInstance = discoveryClient.getInstances(serviceName).get(0);
+        List<ServiceInstance> serviceInstanceList = discoveryClient.getInstances(serviceName);
+
+        if (serviceInstanceList.isEmpty()) {
+            throw new RuntimeException("No available service instances for " + serviceName);
+        }
+
+        ServiceInstance serviceInstance = serviceInstanceList.get(random.nextInt(serviceInstanceList.size()));
 
         System.out.println("URL: " + serviceInstance.getUri() + "/" + callbackURL); //TODO: SEND REQUEST TO URL!
 
