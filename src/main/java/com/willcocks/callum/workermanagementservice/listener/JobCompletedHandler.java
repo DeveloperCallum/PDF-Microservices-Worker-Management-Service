@@ -1,5 +1,7 @@
 package com.willcocks.callum.workermanagementservice.listener;
 
+import com.willcocks.callum.model.data.Selection;
+import com.willcocks.callum.model.data.Word;
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.QueueResponse;
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.manager.DocumentResponseManager;
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.manager.ResponsesManager;
@@ -8,11 +10,13 @@ import dto.Document;
 import dto.response.SelectionResponseEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -46,8 +50,17 @@ public class JobCompletedHandler {
                 document.addSelection(data.getPayload().getDocument().getSelectionMap());
             }
 
+
+            System.out.println(document.getSelectionMap().values().stream().map(selections -> selections.stream().map(Selection::getLines)).collect(Collectors.toList()));
+
+            Map<Integer, List<Map<Integer, List<Word>>>> words = document.getSelectionMap().entrySet().stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            integerListEntry -> integerListEntry.getValue().stream().map(Selection::getLines).collect(Collectors.toList()))
+                    );
+
             if (responses.getCallable() != null){
-                responses.getCallable().accept(document);
+                responses.getCallable().accept(words);
             }
         }
     }

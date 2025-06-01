@@ -1,21 +1,24 @@
 package com.willcocks.callum.workermanagementservice.rabbitmq.service.manager;
 
+import com.willcocks.callum.model.data.Word;
 import dto.Document;
 import dto.response.SelectionResponseEntity;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 
 public class DocumentResponseManager extends ResponsesManager<SelectionResponseEntity>{
-    private Consumer<Document> callable;
+    private Consumer<Map<Integer, List<Map<Integer, List<Word>>>>> callable;
     private UUID documentUUID;
 
     public DocumentResponseManager(ApplicationEventPublisher eventPublisher) {
         super(eventPublisher);
     }
 
-    public DocumentResponseManager(ApplicationEventPublisher eventPublisher, Consumer<Document> callable) {
+    public DocumentResponseManager(ApplicationEventPublisher eventPublisher, Consumer<Map<Integer, List<Map<Integer, List<Word>>>>> callable) {
         super(eventPublisher);
         this.callable = callable;
     }
@@ -28,7 +31,7 @@ public class DocumentResponseManager extends ResponsesManager<SelectionResponseE
         this.documentUUID = documentUUID;
     }
 
-    public Consumer<Document> getCallable() {
+    public Consumer<Map<Integer, List<Map<Integer, List<Word>>>>> getCallable() {
         return callable;
     }
 }

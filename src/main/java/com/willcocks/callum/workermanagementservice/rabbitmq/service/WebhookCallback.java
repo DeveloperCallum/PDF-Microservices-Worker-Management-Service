@@ -1,5 +1,6 @@
 package com.willcocks.callum.workermanagementservice.rabbitmq.service;
 
+import com.willcocks.callum.eukrea.ServiceResolver;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.http.HttpMethod;
@@ -21,7 +22,7 @@ public class WebhookCallback<T> implements Consumer<T> {
     private String serviceName;
     private String callbackURL;
 
-    private static Random random = new Random();
+    private static final Random random = new Random();
     private final DiscoveryClient discoveryClient;
 
     public WebhookCallback(String serviceName, String callbackURL, DiscoveryClient discoveryClient) {
@@ -48,13 +49,7 @@ public class WebhookCallback<T> implements Consumer<T> {
 
     @Override
     public void accept(T t) {
-        List<ServiceInstance> serviceInstanceList = discoveryClient.getInstances(serviceName);
-
-        if (serviceInstanceList.isEmpty()) {
-            throw new RuntimeException("No available service instances for " + serviceName);
-        }
-
-        ServiceInstance serviceInstance = serviceInstanceList.get(random.nextInt(serviceInstanceList.size()));
+        ServiceInstance serviceInstance = ServiceResolver.resolveName(discoveryClient, serviceName);
 
         System.out.println("URL: " + serviceInstance.getUri() + "/" + callbackURL); //TODO: SEND REQUEST TO URL!
 
