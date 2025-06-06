@@ -1,0 +1,44 @@
+<configuration>
+
+    <!-- Console appender for local debug -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Loki appender -->
+    <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+        <http>
+            <url>http://loki:3100/loki/api/v1/push</url>
+        </http>
+        <format>
+            <label>
+                <pattern>
+                    app = WorkerManagementService,
+                    host = ${HOSTNAME}
+                </pattern>
+                <structuredMetadataPattern>
+                    level = %level,
+                    thread = %thread,
+                    class = %logger,
+                    traceId = %mdc{traceId:-none}
+                </structuredMetadataPattern>
+            </label>
+            <message>
+                <pattern>%-5level %logger{20} %msg %ex</pattern>
+            </message>
+        </format>
+    </appender>
+
+    <!-- Log everything to both Loki and Console -->
+    <root level="ERROR">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+    <!-- Log everything to both Loki and Console -->
+    <root level="INFO">
+        <appender-ref ref="LOKI" />
+    </root>
+
+</configuration>

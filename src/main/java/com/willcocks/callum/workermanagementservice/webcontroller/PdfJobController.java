@@ -3,6 +3,9 @@ package com.willcocks.callum.workermanagementservice.webcontroller;
 import com.willcocks.callum.eukrea.ServiceResolver;
 import com.willcocks.callum.model.PDFProcessingJob;
 import com.willcocks.callum.workermanagementservice.events.impl.SubmitRequestToQueueEvent;
+import dto.ImageRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.context.ApplicationEventPublisher;
@@ -20,9 +23,10 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/management/pdf")
 public class PdfJobController {
-    private ApplicationEventPublisher applicationEventPublisher;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final DiscoveryClient discoveryClient;
     private final String getDocumentUUID = "/api/pdf/";
+    public static final Logger logger = LoggerFactory.getLogger(PdfJobController.class);
 
     public PdfJobController(ApplicationEventPublisher applicationEventPublisher, DiscoveryClient discoveryClient) {
         this.discoveryClient = discoveryClient;
@@ -37,15 +41,15 @@ public class PdfJobController {
             if (rq.getPdfBase64Document() == null){ //No Document provided, so lets try and find the document using the UUID.
                 ServiceInstance serviceInstance = ServiceResolver.resolveName(discoveryClient, "EXPRESSJS");
                 String getDocumentUUIDWithUUID = getDocumentUUID + rq.getDocumentUUID().toString();
-                System.out.println("getDocumentURL: " + getDocumentUUIDWithUUID);
+                logger.info("getDocumentURL: " + getDocumentUUIDWithUUID);
 
                 RestClient customClient = RestClient.builder().requestFactory(new HttpComponentsClientHttpRequestFactory()).baseUrl(serviceInstance.getUri()).build();
-                retriedDocument response = customClient.method(HttpMethod.GET).uri(getDocumentUUIDWithUUID).retrieve().body(retriedDocument.class);
+                RetriedDocument response = customClient.method(HttpMethod.GET).uri(getDocumentUUIDWithUUID).retrieve().body(RetriedDocument.class);
 
-                System.out.println(response.documentUUID);
-                System.out.println("pdfBase64: " + response.pdfBase64.substring(0, 20));
+                logger.info(response.documentUUID().toString());
+                logger.info("pdfBase64: " + response.pdfBase64().substring(0, 20));
 
-                rq.setPdfBase64Document(response.pdfBase64);
+                rq.setPdfBase64Document(response.pdfBase64());
             }
         }
 
@@ -53,9 +57,17 @@ public class PdfJobController {
         System.out.println(rq.getCallbackURL());
         applicationEventPublisher.publishEvent(event);
 
-        return ResponseEntity.status(202).body(new returnedResponse(rq.getDocumentUUID(), rq.getSelectionUUID(), rq.getCallbackURL(), rq.getCallbackService()));
+        return ResponseEntity.status(202).body(new ReturnedResponse(rq.getDocumentUUID(), rq.getSelectionUUID(), rq.getCallbackURL(), rq.getCallbackService()));
     }
 
-    private record returnedResponse(UUID documentUUID, UUID selectionUUID, String callbackURL, String callbackService){};
-    private record retriedDocument(UUID documentUUID, String pdfBase64){};
+    @PostMapping("/image")
+    public ResponseEntity<?> convertDocumentToImage(ImageRequest rq){
+
+
+        return ResponseEntity.accepted().body("");
+    }
+
+    private record ReturnedResponse(UUID documentUUID, UUID selectionUUID, String callbackURL, String callbackService){};
+    private record RetriedDocument(UUID documentUUID, String pdfBase64){};
+
 }
