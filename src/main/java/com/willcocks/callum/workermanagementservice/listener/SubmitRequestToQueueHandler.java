@@ -62,7 +62,7 @@ public class SubmitRequestToQueueHandler {
             }
 
             System.out.printf("Submit: Job-No: %d, Start: %d, End: %d, Size: %d, Selection-Data: %s\n", requestNo, start, end, threadSelection.size(), threadSelection.toString());
-            sendRequestToQueue(documentUUID, rq.getPdfBase64Document(), responsesManager, threadSelection);
+            sendRequestToQueue(documentUUID, rq.getBase64Document(), responsesManager, threadSelection);
         }
     }
 
