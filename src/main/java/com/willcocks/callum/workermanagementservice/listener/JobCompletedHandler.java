@@ -24,12 +24,8 @@ import java.util.stream.Collectors;
 public class JobCompletedHandler {
     private static final Logger logger = LoggerFactory.getLogger(JobCompletedHandler.class);
 
-    private final DiscoveryClient discoveryClient;
-    private final RestClient restClient;
+    public JobCompletedHandler() {
 
-    public JobCompletedHandler(DiscoveryClient discoveryClient, RestClient.Builder restClientBuilder) {
-        this.discoveryClient = discoveryClient;
-        restClient = restClientBuilder.build();
     }
 
     @EventListener

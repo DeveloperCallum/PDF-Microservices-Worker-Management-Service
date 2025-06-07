@@ -20,7 +20,7 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Queue queue() {
+    public Queue workerQueue() {
         return QueueBuilder.nonDurable("workerQueue")  // Non-durable queue
                 .deadLetterExchange("dlx-exchange")  // Assign a DLX
                 .deadLetterRoutingKey("dlx-routing-key")  // Routing key for dead letters
@@ -64,12 +64,15 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Binding binding(Queue queue, DirectExchange exchange) {
-        return BindingBuilder.bind(queue).to(exchange).with("pdf.workers");
+    public Binding binding(Queue workerQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(workerQueue).to(exchange).with("pdf.workers.document.processing");
     }
 
     @Bean
     public Queue replyQueue() {
-        return new Queue("workerReplyQueue");
+        return QueueBuilder.nonDurable("workerReplyQueue")  // Non-durable queue
+                .deadLetterExchange("dlx-exchange")  // Assign a DLX
+                .deadLetterRoutingKey("dlx-routing-key")  // Routing key for dead letters
+                .build();
     }
 }

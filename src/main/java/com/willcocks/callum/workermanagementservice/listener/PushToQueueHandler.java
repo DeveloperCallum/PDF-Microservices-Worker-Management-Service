@@ -15,11 +15,9 @@ import org.springframework.amqp.core.Queue;
 @Component
 public class PushToQueueHandler {
     private final RabbitTemplate rabbitTemplate;
-    private final Queue queue;
 
-    public PushToQueueHandler(@Autowired RabbitTemplate rabbitTemplate, @Autowired Queue queue) {
+    public PushToQueueHandler(@Autowired RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
-        this.queue = queue;
     }
 
     @EventListener
@@ -29,6 +27,6 @@ public class PushToQueueHandler {
         properties.setHeader("__TypeId__", DocumentQueueEntity.class.getName()); // Tell RabbitMQ the type
         properties.setCorrelationId(event.getQueueEntity().getJobUUID().toString());
         Message requestMessage = new Message(new ObjectMapper().writeValueAsBytes(event.getQueueEntity()), properties);
-        rabbitTemplate.send("myExchange", "pdf.workers", requestMessage);
+        rabbitTemplate.send("myExchange", "pdf.workers.document.processing", requestMessage);
     }
 }
