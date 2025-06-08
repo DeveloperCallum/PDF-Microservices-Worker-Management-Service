@@ -1,6 +1,6 @@
 package com.willcocks.callum.workermanagementservice.listener;
 
-import com.willcocks.callum.workermanagementservice.events.impl.ResponseFromQueueEvent;
+import com.willcocks.callum.workermanagementservice.events.ResponseFromQueueEvent;
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.ResponseService;
 import dto.response.SelectionResponseEntity;
 import org.slf4j.Logger;

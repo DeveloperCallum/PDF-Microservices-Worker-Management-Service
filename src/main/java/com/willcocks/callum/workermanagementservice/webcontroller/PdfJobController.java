@@ -3,7 +3,7 @@ package com.willcocks.callum.workermanagementservice.webcontroller;
 import com.willcocks.callum.eukrea.ServiceResolver;
 import com.willcocks.callum.model.PDFProcessingJob;
 import com.willcocks.callum.workermanagementservice.events.SubmitImageRequestToQueueEvent;
-import com.willcocks.callum.workermanagementservice.events.impl.SubmitRequestToQueueEvent;
+import com.willcocks.callum.workermanagementservice.events.SubmitRequestToQueueEvent;
 import dto.ImageRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

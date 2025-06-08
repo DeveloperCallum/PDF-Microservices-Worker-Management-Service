@@ -2,8 +2,8 @@ package com.willcocks.callum.workermanagementservice.listener;
 
 import com.willcocks.callum.model.PDFProcessingJob;
 import com.willcocks.callum.model.data.Selection;
-import com.willcocks.callum.workermanagementservice.events.impl.PushToQueueEvent;
-import com.willcocks.callum.workermanagementservice.events.impl.SubmitRequestToQueueEvent;
+import com.willcocks.callum.workermanagementservice.events.PushToQueueEvent;
+import com.willcocks.callum.workermanagementservice.events.SubmitRequestToQueueEvent;
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.ResponseService;
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.manager.DocumentResponseManager;
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.manager.ResponsesManager;
@@ -18,18 +18,18 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 @Component
-public class SubmitRequestToQueueHandler {
+public class SubmitDocumentRequestToQueueHandler {
     private final ApplicationEventPublisher applicationEventPublisher;
     private ResponseService responseService;
     private DiscoveryClient discoveryClient;
-    public SubmitRequestToQueueHandler(ApplicationEventPublisher applicationEventPublisher, ResponseService responseService, DiscoveryClient discoveryClient) {
+    public SubmitDocumentRequestToQueueHandler(ApplicationEventPublisher applicationEventPublisher, ResponseService responseService, DiscoveryClient discoveryClient) {
         this.applicationEventPublisher = applicationEventPublisher;
         this.responseService = responseService;
         this.discoveryClient = discoveryClient;
     }
 
     @EventListener
-    public void SubmitRequestToQueueEvent(SubmitRequestToQueueEvent event) {
+    public void handle(SubmitRequestToQueueEvent event) {
         UUID documentUUID = event.getJob().getDocumentUUID();
         PDFProcessingJob rq = event.getJob();
 
