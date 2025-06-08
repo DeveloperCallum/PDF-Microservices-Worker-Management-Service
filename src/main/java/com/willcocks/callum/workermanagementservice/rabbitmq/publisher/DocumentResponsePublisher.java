@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component;
 
 @RabbitListener(queues = "documentProcessingReplyQueue")
 @Component
-public class QueueResponsePublisher {
+public class DocumentResponsePublisher {
 
     private final ApplicationEventPublisher applicationEventPublisher;
 
-    public QueueResponsePublisher(@Autowired ApplicationEventPublisher applicationEventPublisher) {
+    public DocumentResponsePublisher(@Autowired ApplicationEventPublisher applicationEventPublisher) {
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
