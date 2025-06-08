@@ -2,6 +2,7 @@ package com.willcocks.callum.workermanagementservice.webcontroller;
 
 import com.willcocks.callum.eukrea.ServiceResolver;
 import com.willcocks.callum.model.PDFProcessingJob;
+import com.willcocks.callum.workermanagementservice.events.SubmitImageRequestToQueueEvent;
 import com.willcocks.callum.workermanagementservice.events.impl.SubmitRequestToQueueEvent;
 import dto.ImageRequest;
 import org.slf4j.Logger;
@@ -52,7 +53,7 @@ public class PdfJobController {
     }
 
     @PostMapping("/image")
-    public ResponseEntity<?> convertDocumentToImage(ImageRequest rq){
+    public ResponseEntity<?> convertDocumentToImage(@RequestBody ImageRequest rq){
 
         if (rq.getDocumentUUID() != null){
             if (rq.getBase64Document() == null){ //No Document provided, so lets try and find the document using the UUID.
@@ -60,6 +61,8 @@ public class PdfJobController {
                 rq.setBase64Document(documentString);
             }
         }
+
+        applicationEventPublisher.publishEvent(new SubmitImageRequestToQueueEvent(this, rq));
 
         return ResponseEntity.accepted().body("");
     }

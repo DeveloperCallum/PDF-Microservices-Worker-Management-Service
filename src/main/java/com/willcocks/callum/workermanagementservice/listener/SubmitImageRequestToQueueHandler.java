@@ -11,6 +11,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.UUID;
 
 @Component
@@ -34,6 +35,8 @@ public class SubmitImageRequestToQueueHandler {
         if (document == null || document.isEmpty()){
             throw new IllegalStateException("Base64 string needs to be provided.");
         }
+
+        System.out.println(new Date().getTime());
 
         MessageProperties properties = new MessageProperties();
         properties.setReplyTo("imageReplyQueue"); // Explicitly set reply queue
