@@ -1,4 +1,4 @@
-package com.willcocks.callum.workermanagementservice.events.impl;
+package com.willcocks.callum.workermanagementservice.events;
 
 import com.willcocks.callum.model.PDFProcessingJob;
 import org.springframework.context.ApplicationEvent;

@@ -13,13 +13,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
     @Bean
-    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
-        RabbitTemplate template = new RabbitTemplate(connectionFactory);
-        template.setMessageConverter(jsonMessageConverter());
-        return template;
-    }
-
-    @Bean
     public Queue documentProcessingQueue() {
         return QueueBuilder.nonDurable("documentProcessingQueue")  // Non-durable queue
                 .deadLetterExchange("dlx-exchange")  // Assign a DLX
@@ -51,6 +44,34 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Binding documentBinding(Queue documentProcessingQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(documentProcessingQueue).to(exchange).with("pdf.workers.document.processing");
+    }
+
+    @Bean
+    public Queue documentReplyQueue() {
+        return QueueBuilder.nonDurable("documentProcessingReplyQueue")  // Non-durable queue
+                .deadLetterExchange("dlx-exchange")  // Assign a DLX
+                .deadLetterRoutingKey("dlx-routing-key")  // Routing key for dead letters
+                .build();
+    }
+
+    @Bean
+    public Queue imageReplyQueue() {
+        return QueueBuilder.nonDurable("imageReplyQueue")  // Non-durable queue
+                .deadLetterExchange("dlx-exchange")  // Assign a DLX
+                .deadLetterRoutingKey("dlx-routing-key")  // Routing key for dead letters
+                .build();
+    }
+
+    @Bean
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+        RabbitTemplate template = new RabbitTemplate(connectionFactory);
+        template.setMessageConverter(jsonMessageConverter());
+        return template;
+    }
+
+    @Bean
     //Application runner is a callback interface that allows you to run code after the application has started but before it is ready to accept requests.
     public ApplicationRunner runner(RabbitAdmin rabbitAdmin) {
         return args -> rabbitAdmin.initialize();
@@ -72,28 +93,7 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Binding documentBinding(Queue documentProcessingQueue, DirectExchange exchange) {
-        return BindingBuilder.bind(documentProcessingQueue).to(exchange).with("pdf.workers.document.processing");
-    }
-
-    @Bean
     public Binding imageBinding(Queue imageProcessingQueue, DirectExchange exchange) {
         return BindingBuilder.bind(imageProcessingQueue).to(exchange).with("pdf.workers.image.processing");
-    }
-
-    @Bean
-    public Queue replyQueue() {
-        return QueueBuilder.nonDurable("workerReplyQueue")  // Non-durable queue
-                .deadLetterExchange("dlx-exchange")  // Assign a DLX
-                .deadLetterRoutingKey("dlx-routing-key")  // Routing key for dead letters
-                .build();
-    }
-
-    @Bean
-    public Queue imageReplyQueue() {
-        return QueueBuilder.nonDurable("imageReplyQueue")  // Non-durable queue
-                .deadLetterExchange("dlx-exchange")  // Assign a DLX
-                .deadLetterRoutingKey("dlx-routing-key")  // Routing key for dead letters
-                .build();
     }
 }
