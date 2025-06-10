@@ -3,7 +3,7 @@ package com.willcocks.callum.workermanagementservice.listener;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.willcocks.callum.workermanagementservice.events.PushToQueueEvent;
-import dto.DocumentQueueEntity;
+import dto.extraction.DocumentQueueEntity;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;

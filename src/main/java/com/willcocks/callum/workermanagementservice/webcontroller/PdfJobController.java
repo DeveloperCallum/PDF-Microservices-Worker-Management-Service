@@ -4,7 +4,7 @@ import com.willcocks.callum.eukrea.ServiceResolver;
 import com.willcocks.callum.model.PDFProcessingJob;
 import com.willcocks.callum.workermanagementservice.events.SubmitImageRequestToQueueEvent;
 import com.willcocks.callum.workermanagementservice.events.SubmitRequestToQueueEvent;
-import dto.ImageRequest;
+import com.willcocks.callum.model.ImageRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.ServiceInstance;

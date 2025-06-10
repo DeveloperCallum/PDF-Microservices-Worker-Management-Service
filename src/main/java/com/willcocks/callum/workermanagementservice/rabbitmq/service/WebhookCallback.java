@@ -12,13 +12,14 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 
-public class WebhookCallback<T> implements Consumer<T> {
+public class WebhookCallback<T> implements Consumer<T>, Serializable {
     private String serviceName;
     private String callbackURL;
 

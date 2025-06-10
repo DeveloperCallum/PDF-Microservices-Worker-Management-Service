@@ -9,7 +9,7 @@ import com.willcocks.callum.workermanagementservice.rabbitmq.service.manager.Doc
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.manager.ResponsesManager;
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.WebhookCallback;
 import com.willcocks.callum.workermanagementservice.util.Configuration;
-import dto.DocumentQueueEntity;
+import dto.extraction.DocumentQueueEntity;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
