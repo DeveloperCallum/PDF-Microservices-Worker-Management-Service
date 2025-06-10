@@ -1,6 +1,6 @@
 package com.willcocks.callum.workermanagementservice.events;
 
-import dto.ImageRequest;
+import com.willcocks.callum.model.ImageRequest;
 import org.springframework.context.ApplicationEvent;
 
 public class SubmitImageRequestToQueueEvent extends ApplicationEvent {

@@ -32,13 +32,12 @@
     </appender>
 
     <!-- Log everything to both Loki and Console -->
-    <root level="ERROR">
+    <root level="WARN">
         <appender-ref ref="STDOUT" />
     </root>
 
-    <!-- Log everything to both Loki and Console -->
-    <root level="INFO">
+    <!-- Log everything to both Loki -->
+    <logger name="com.willcocks.callum" level="TRACE">
         <appender-ref ref="LOKI" />
-    </root>
-
+    </logger>
 </configuration>

@@ -1,7 +1,7 @@
 package com.willcocks.callum.workermanagementservice.rabbitmq.publisher;
 
 import com.willcocks.callum.workermanagementservice.events.ResponseFromQueueEvent;
-import dto.response.SelectionResponseEntity;
+import dto.extraction.SelectionResponseEntity;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;

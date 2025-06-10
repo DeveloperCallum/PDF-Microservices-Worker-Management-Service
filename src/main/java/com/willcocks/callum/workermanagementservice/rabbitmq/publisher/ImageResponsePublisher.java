@@ -1,10 +1,9 @@
 package com.willcocks.callum.workermanagementservice.rabbitmq.publisher;
 
-import dto.response.ImageResponse;
+import com.willcocks.callum.model.ImageResponse;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
-
 import java.util.Date;
 
 @RabbitListener(queues = "imageReplyQueue")

@@ -11,6 +11,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.UUID;
 
+/**
+ * assign or grab a trace ID whenever a request passes through.
+ */
 @Component
 public class TraceIdFilter extends OncePerRequestFilter {
     @Override

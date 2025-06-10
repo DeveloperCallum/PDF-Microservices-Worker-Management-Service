@@ -1,8 +1,7 @@
 package com.willcocks.callum.workermanagementservice.rabbitmq.service.manager;
 
 import com.willcocks.callum.model.data.Word;
-import dto.Document;
-import dto.response.SelectionResponseEntity;
+import dto.extraction.SelectionResponseEntity;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;

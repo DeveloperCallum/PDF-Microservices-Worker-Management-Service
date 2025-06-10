@@ -17,6 +17,7 @@ import java.util.UUID;
  * @param <V>
  */
 
+//TODO: Change this, this did not need to be so complicated.
 public class ResponsesManager<V> implements JobResponseManager<V> {
     private int minimumResponses = -1; //1-based index.
     private final Map<UUID, QueueResponse<UUID, UUID, V>> map = new HashMap<>();

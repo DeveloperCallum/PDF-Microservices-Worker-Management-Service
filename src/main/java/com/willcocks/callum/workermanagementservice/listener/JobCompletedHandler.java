@@ -6,14 +6,12 @@ import com.willcocks.callum.workermanagementservice.rabbitmq.service.QueueRespon
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.manager.DocumentResponseManager;
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.manager.ResponsesManager;
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.events.JobCompletedEvent;
-import dto.Document;
-import dto.response.SelectionResponseEntity;
+import dto.extraction.Document;
+import dto.extraction.SelectionResponseEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
 
 import java.util.List;
 import java.util.Map;
