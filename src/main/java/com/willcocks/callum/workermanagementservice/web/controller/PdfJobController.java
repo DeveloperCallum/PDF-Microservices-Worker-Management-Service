@@ -6,7 +6,7 @@ import com.willcocks.callum.workermanagementservice.events.OnSendDocumentRequest
 import com.willcocks.callum.workermanagementservice.events.SubmitImageRequestToQueueEvent;
 import com.willcocks.callum.workermanagementservice.events.SubmitDocumentRequestToQueueEvent;
 import com.willcocks.callum.model.ImageRequest;
-import dto.DocumentMetaQueueEntity;
+import network.DocumentMetaRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.ServiceInstance;
@@ -29,6 +29,7 @@ public class PdfJobController {
     private final ApplicationEventPublisher applicationEventPublisher;
     private final DiscoveryClient discoveryClient;
     public static final Logger logger = LoggerFactory.getLogger(PdfJobController.class);
+
     public PdfJobController(ApplicationEventPublisher applicationEventPublisher, DiscoveryClient discoveryClient) {
         this.discoveryClient = discoveryClient;
         this.applicationEventPublisher = applicationEventPublisher;
@@ -38,11 +39,18 @@ public class PdfJobController {
     public ResponseEntity<?> extractPDFPageEndpoint(@RequestBody PDFProcessingJob rq) {
         SubmitDocumentRequestToQueueEvent event = new SubmitDocumentRequestToQueueEvent(this, rq);
 
-        if (rq.getDocumentUUID() != null){
-            if (rq.getBase64Document() == null){ //No Document provided, so lets try and find the document using the UUID.
-                String documentString = getDocumentStringFromDocumentUUID(rq.getDocumentUUID());
-                rq.setBase64Document(documentString);
+        if (rq.getDocumentUUID() == null) {
+            throw new IllegalStateException("DocumentUUID not provided!");
+        }
+
+        if (rq.getBase64Document() == null) { //No Document provided, so lets try and find the document using the UUID.
+            String documentString = getDocumentStringFromDocumentUUID(rq.getDocumentUUID());
+
+            if (documentString == null){
+                return ResponseEntity.status(404).body("");
             }
+
+            rq.setBase64Document(documentString);
         }
 
         System.out.println(rq.getCallbackService());
@@ -53,39 +61,86 @@ public class PdfJobController {
     }
 
     @PostMapping("/image")
-    public ResponseEntity<?> convertDocumentToImage(@RequestBody ImageRequest rq){
+    public ResponseEntity<?> convertDocumentToImage(@RequestBody ImageRequest rq) {
 
-        if (rq.getDocumentUUID() != null){
-            if (rq.getBase64Document() == null){ //No Document provided, so lets try and find the document using the UUID.
-                String documentString = getDocumentStringFromDocumentUUID(rq.getDocumentUUID());
-                rq.setBase64Document(documentString);
+        if (rq.getDocumentUUID() == null) {
+            throw new IllegalStateException("DocumentUUID not provided!");
+        }
+
+        if (rq.getBase64Document() == null) { //No Document provided, so lets try and find the document using the UUID.
+            String documentString = getDocumentStringFromDocumentUUID(rq.getDocumentUUID());
+
+            if (documentString == null){
+                return ResponseEntity.status(404).body("");
             }
+
+            rq.setBase64Document(documentString);
         }
 
         applicationEventPublisher.publishEvent(new SubmitImageRequestToQueueEvent(this, rq));
-
-        return ResponseEntity.accepted().body("");
-    }
-
-    @PostMapping("/meta")
-    public ResponseEntity<?> getDocumentMetaData(DocumentMetaQueueEntity documentMetaQueueEntity){
-        applicationEventPublisher.publishEvent(new OnSendDocumentRequestToQueue(this, documentMetaQueueEntity));
         return ResponseEntity.ok("");
     }
 
-    private final String getDocumentUUID = "/api/pdf/";
-    public String getDocumentStringFromDocumentUUID(UUID documentUUID){
-        ServiceInstance serviceInstance = ServiceResolver.resolveName(discoveryClient, "EXPRESSJS");
-        String getDocumentUUIDWithUUID = getDocumentUUID + documentUUID.toString();
+    @PostMapping("/meta")
+    public ResponseEntity<?> getDocumentMetaData(@RequestBody DocumentMetaRequest rq) {
+        String callbackURL = rq.getCallbackURL();
+        String serviceName = rq.getCallbackService();
 
-        RestClient customClient = RestClient.builder().requestFactory(new HttpComponentsClientHttpRequestFactory()).baseUrl(serviceInstance.getUri()).build();
-        RetriedDocument response = customClient.method(HttpMethod.GET).uri(getDocumentUUIDWithUUID).retrieve().body(RetriedDocument.class);
+        //If we don't have a place to send the data, the data is meaningless.
+        if (callbackURL == null || callbackURL.isEmpty()) {
+            throw new IllegalStateException("CallbackURL not provided!");
+        }
 
-        return response.pdfBase64();
+        if (serviceName == null || serviceName.isEmpty()) {
+            throw new IllegalStateException("ServiceName not provided!");
+        }
+
+        if (rq.getBase64Document() == null) { //No Document provided, so lets try and find the document using the UUID.
+            String documentString = getDocumentStringFromDocumentUUID(rq.getDocumentUUID());
+
+            if (documentString == null){
+                return ResponseEntity.status(404).body("");
+            }
+
+            rq.setBase64Document(documentString);
+        }
+
+        if (rq.getBase64Document() == null) { //No Document provided, so lets try and find the document using the UUID.
+            String documentString = getDocumentStringFromDocumentUUID(rq.getDocumentUUID());
+            rq.setBase64Document(documentString);
+        }
+
+        applicationEventPublisher.publishEvent(new OnSendDocumentRequestToQueue(this, rq));
+        return ResponseEntity.ok("");
     }
 
-    private record ReturnedResponse(UUID documentUUID, UUID selectionUUID, String callbackURL, String callbackService){};
+    /**
+     * Get the base64 document string from a document UUID.
+     * @param documentUUID The unique id.
+     * @return the document base64 string or null if not found.
+     */
+    public String getDocumentStringFromDocumentUUID(UUID documentUUID) {
+        ServiceInstance serviceInstance = ServiceResolver.resolveName(discoveryClient, "EXPRESSJS");
+        String getDocumentUUID = "/api/pdf/";
+        String getDocumentUUIDWithUUID = getDocumentUUID + documentUUID.toString();
 
-    private record RetriedDocument(UUID documentUUID, String pdfBase64){};
+        try{
+            RestClient customClient = RestClient.builder().requestFactory(new HttpComponentsClientHttpRequestFactory()).baseUrl(serviceInstance.getUri()).build();
+            RetriedDocument response = customClient.method(HttpMethod.GET).uri(getDocumentUUIDWithUUID).retrieve().body(RetriedDocument.class);
+            return response.pdfBase64();
+        }catch (RuntimeException e){
+            return null;
+        }
+    }
+
+    private record ReturnedResponse(UUID documentUUID, UUID selectionUUID, String callbackURL, String callbackService) {
+    }
+
+    ;
+
+    private record RetriedDocument(UUID documentUUID, String pdfBase64) {
+    }
+
+    ;
 
 }

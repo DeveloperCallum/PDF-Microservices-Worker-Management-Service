@@ -6,8 +6,8 @@ import com.willcocks.callum.workermanagementservice.rabbitmq.service.QueueRespon
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.manager.DocumentResponseManager;
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.manager.ResponsesManager;
 import com.willcocks.callum.workermanagementservice.events.ExtractionCompletedEvent;
-import dto.extraction.Document;
-import dto.extraction.SelectionResponseEntity;
+import dto.Document;
+import network.ExtractionResponseEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
@@ -36,8 +36,8 @@ public class OnSendCallbackForExtraction {
             Document document = new Document();
             document.setDocumentUUID(responses.getDocumentUUID());
 
-            for (QueueResponse<UUID, UUID, SelectionResponseEntity> uuidQueueResponseEntry : responses.getResponses().values()) { //For every response
-                SelectionResponseEntity data = uuidQueueResponseEntry.getData();
+            for (QueueResponse<UUID, UUID, ExtractionResponseEntity> uuidQueueResponseEntry : responses.getResponses().values()) { //For every response
+                ExtractionResponseEntity data = uuidQueueResponseEntry.getData();
                 document.addSelection(data.getPayload().getDocument().getSelectionMap()); //Add the responses selection to the document object.
             }
 

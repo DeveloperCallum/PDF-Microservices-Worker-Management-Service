@@ -3,15 +3,14 @@ package com.willcocks.callum.workermanagementservice.listener;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.willcocks.callum.model.PDFProcessingJob;
-import com.willcocks.callum.model.WebhookCallback;
+import com.willcocks.callum.model.SendWebhookToService;
 import com.willcocks.callum.model.data.Selection;
-import com.willcocks.callum.workermanagementservice.events.PushToQueueEvent;
 import com.willcocks.callum.workermanagementservice.events.SubmitDocumentRequestToQueueEvent;
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.ResponseService;
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.manager.DocumentResponseManager;
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.manager.ResponsesManager;
 import com.willcocks.callum.workermanagementservice.util.Configuration;
-import dto.extraction.DocumentQueueEntity;
+import network.ExtractionRequest;
 import org.slf4j.MDC;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
@@ -48,7 +47,7 @@ public class OnSendDocumentRequestToQueue {
         //How many selections do we have? How many Job requests will that need?
         int totalNoRequests = (int) Math.ceil((double) rq.getSelection().size() / (double) Configuration.PAGES_PER_JOB);
 
-        DocumentResponseManager responsesManager = new DocumentResponseManager(applicationEventPublisher, new WebhookCallback<>(rq.getCallbackService(), rq.getCallbackURL(), discoveryClient));
+        DocumentResponseManager responsesManager = new DocumentResponseManager(applicationEventPublisher, new SendWebhookToService<>(rq.getCallbackService(), rq.getCallbackURL(), discoveryClient));
         responsesManager.setMinimumResponses(totalNoRequests);
         responsesManager.setDocumentUUID(rq.getDocumentUUID());
         responseService.putResponseManager(documentUUID, responsesManager); //TODO: Change to EXTRACTION UUID
@@ -76,7 +75,7 @@ public class OnSendDocumentRequestToQueue {
 
     private void sendRequestToQueue(UUID documentUUID, String getPdfBase64Document, ResponsesManager<?> responsesManager, Map<Integer, List<Selection>> selections) throws JsonProcessingException {
         UUID jobUUID = UUID.randomUUID();
-        DocumentQueueEntity entity = new DocumentQueueEntity(jobUUID, documentUUID, getPdfBase64Document,selections);
+        ExtractionRequest entity = new ExtractionRequest(jobUUID, documentUUID, getPdfBase64Document,selections);
         entity.getDocument().setSelection(selections);
         entity.getDocument().setDocumentUUID(documentUUID);
         entity.getDocument().setPdfBase64Document(getPdfBase64Document);
@@ -85,7 +84,7 @@ public class OnSendDocumentRequestToQueue {
 
         MessageProperties properties = new MessageProperties();
         properties.setReplyTo("documentProcessingReplyQueue"); // Explicitly set reply queue
-        properties.setHeader("__TypeId__", DocumentQueueEntity.class.getName()); // Tell RabbitMQ the type
+        properties.setHeader("__TypeId__", ExtractionRequest.class.getName()); // Tell RabbitMQ the type
         properties.setHeader("X-Trace-Id", MDC.get("traceId")); //Set the traceId to be used by other requests.
         properties.setCorrelationId(entity.getJobUUID().toString());
         Message requestMessage = new Message(new ObjectMapper().writeValueAsBytes(entity), properties);

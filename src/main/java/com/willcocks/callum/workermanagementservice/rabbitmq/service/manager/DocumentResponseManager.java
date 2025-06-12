@@ -1,7 +1,7 @@
 package com.willcocks.callum.workermanagementservice.rabbitmq.service.manager;
 
 import com.willcocks.callum.model.data.Word;
-import dto.extraction.SelectionResponseEntity;
+import network.ExtractionResponseEntity;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public class DocumentResponseManager extends ResponsesManager<SelectionResponseEntity>{
+public class DocumentResponseManager extends ResponsesManager<ExtractionResponseEntity>{
     private Consumer<Map<Integer, List<Map<Integer, List<Word>>>>> callable;
     private UUID documentUUID;
 

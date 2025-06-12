@@ -1,19 +1,17 @@
 package com.willcocks.callum.workermanagementservice.events;
 
-import dto.DocumentMetaQueueEntity;
+import network.DocumentMetaRequest;
 import org.springframework.context.ApplicationEvent;
 
-import java.util.UUID;
-
 public class OnSendDocumentRequestToQueue extends ApplicationEvent {
-    private final DocumentMetaQueueEntity documentMetaQueueEntity;
+    private final DocumentMetaRequest documentMetaRequest;
 
-    public OnSendDocumentRequestToQueue(Object source, DocumentMetaQueueEntity documentMetaQueueEntity) {
+    public OnSendDocumentRequestToQueue(Object source, DocumentMetaRequest documentMetaRequest) {
         super(source);
-        this.documentMetaQueueEntity = documentMetaQueueEntity;
+        this.documentMetaRequest = documentMetaRequest;
     }
 
-    public DocumentMetaQueueEntity getDocumentMetaQueueEntity() {
-        return documentMetaQueueEntity;
+    public DocumentMetaRequest getDocumentMetaQueueEntity() {
+        return documentMetaRequest;
     }
 }

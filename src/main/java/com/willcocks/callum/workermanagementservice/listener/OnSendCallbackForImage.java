@@ -1,7 +1,7 @@
 package com.willcocks.callum.workermanagementservice.listener;
 
 import com.willcocks.callum.model.ImageRequest;
-import com.willcocks.callum.model.WebhookCallback;
+import com.willcocks.callum.model.SendWebhookToService;
 import com.willcocks.callum.workermanagementservice.events.ImageCompletedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,11 +35,11 @@ public class OnSendCallbackForImage {
                 ImageWebhookData ImageWebhookData = new ImageWebhookData(base64ImagesArr.length, toSent);
 
                 //Create & send a new webhook.
-                WebhookCallback<ImageWebhookData> webhookCallback = new WebhookCallback<>(imageRequest.getCallbackService(),
+                SendWebhookToService<ImageWebhookData> sendWebhookToService = new SendWebhookToService<>(imageRequest.getCallbackService(),
                         imageRequest.getCallbackURL(), discoveryClient);
 
                 try{
-                    webhookCallback.accept(ImageWebhookData);
+                    sendWebhookToService.accept(ImageWebhookData);
                     logger.error("Webhook sent..");
                 }catch (RuntimeException e){
                     logger.info("Error sending webhook!", e);
