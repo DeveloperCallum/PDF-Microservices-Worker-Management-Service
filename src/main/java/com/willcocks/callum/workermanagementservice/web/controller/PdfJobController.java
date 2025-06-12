@@ -105,11 +105,6 @@ public class PdfJobController {
             rq.setBase64Document(documentString);
         }
 
-        if (rq.getBase64Document() == null) { //No Document provided, so lets try and find the document using the UUID.
-            String documentString = getDocumentStringFromDocumentUUID(rq.getDocumentUUID());
-            rq.setBase64Document(documentString);
-        }
-
         applicationEventPublisher.publishEvent(new OnSendDocumentRequestToQueue(this, rq));
         return ResponseEntity.ok("");
     }
@@ -134,11 +129,11 @@ public class PdfJobController {
     }
 
     private record ReturnedResponse(UUID documentUUID, UUID selectionUUID, String callbackURL, String callbackService) {
+
     }
 
-    ;
-
     private record RetriedDocument(UUID documentUUID, String pdfBase64) {
+
     }
 
     ;
