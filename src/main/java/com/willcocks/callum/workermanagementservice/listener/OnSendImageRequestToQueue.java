@@ -14,10 +14,10 @@ import java.util.Date;
 import java.util.UUID;
 
 @Component
-public class SubmitImageRequestToQueueHandler {
+public class OnSendImageRequestToQueue {
     private final RabbitTemplate rabbitTemplate;
 
-    public SubmitImageRequestToQueueHandler(RabbitTemplate rabbitTemplate) {
+    public OnSendImageRequestToQueue(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
     }
 
@@ -33,6 +33,15 @@ public class SubmitImageRequestToQueueHandler {
 
         if (document == null || document.isEmpty()){
             throw new IllegalStateException("Base64 string needs to be provided.");
+        }
+
+        ImageRequest imageRequest = event.getImageRequest();
+        if (imageRequest.getCallbackService() == null || imageRequest.getCallbackService().isEmpty()){
+            throw new IllegalStateException("CallbackService string needs to be provided.");
+        }
+
+        if (imageRequest.getCallbackURL() == null || imageRequest.getCallbackURL().isEmpty()){
+            throw new IllegalStateException("CallbackService string needs to be provided.");
         }
 
         System.out.println(new Date().getTime());

@@ -1,4 +1,4 @@
-package com.willcocks.callum.workermanagementservice.webcontroller;
+package com.willcocks.callum.workermanagementservice.web;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,11 +23,14 @@ public class TraceIdFilter extends OncePerRequestFilter {
             traceId = UUID.randomUUID().toString();
         }
 
+        //Apply the traceID for the request.
         MDC.put("traceId", traceId);
 
         try {
             filterChain.doFilter(request, response);
         } finally {
+
+            //Once the request has finished, we need to remove the TraceID.
             MDC.clear();
         }
     }

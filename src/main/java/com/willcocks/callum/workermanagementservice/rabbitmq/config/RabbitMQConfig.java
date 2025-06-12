@@ -1,5 +1,6 @@
 package com.willcocks.callum.workermanagementservice.rabbitmq.config;
 
+import org.slf4j.MDC;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
@@ -29,6 +30,14 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Queue documentMetaQueue() {
+        return QueueBuilder.nonDurable("documentMetaQueue")  // Non-durable queue
+                .deadLetterExchange("dlx-exchange")  // Assign a DLX
+                .deadLetterRoutingKey("dlx-routing-key")  // Routing key for dead letters
+                .build();
+    }
+
+    @Bean
     public Queue deadLetterQueue() {
         return QueueBuilder.durable("dlx-queue")  // Name of the DLQ
                 .build();
@@ -49,6 +58,16 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Binding imageBinding(Queue imageProcessingQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(imageProcessingQueue).to(exchange).with("pdf.workers.image.processing");
+    }
+
+    @Bean
+    public Binding metaBinding(Queue documentMetaQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(documentMetaQueue).to(exchange).with("pdf.workers.document.meta");
+    }
+
+    @Bean
     public Queue documentReplyQueue() {
         return QueueBuilder.nonDurable("documentProcessingReplyQueue")  // Non-durable queue
                 .deadLetterExchange("dlx-exchange")  // Assign a DLX
@@ -59,6 +78,14 @@ public class RabbitMQConfig {
     @Bean
     public Queue imageReplyQueue() {
         return QueueBuilder.nonDurable("imageReplyQueue")  // Non-durable queue
+                .deadLetterExchange("dlx-exchange")  // Assign a DLX
+                .deadLetterRoutingKey("dlx-routing-key")  // Routing key for dead letters
+                .build();
+    }
+
+    @Bean
+    public Queue metaReplyQueue() {
+        return QueueBuilder.nonDurable("metaReplyQueue")  // Non-durable queue
                 .deadLetterExchange("dlx-exchange")  // Assign a DLX
                 .deadLetterRoutingKey("dlx-routing-key")  // Routing key for dead letters
                 .build();
@@ -90,10 +117,5 @@ public class RabbitMQConfig {
     @Bean
     public DirectExchange exchange() {
         return new DirectExchange("myExchange");
-    }
-
-    @Bean
-    public Binding imageBinding(Queue imageProcessingQueue, DirectExchange exchange) {
-        return BindingBuilder.bind(imageProcessingQueue).to(exchange).with("pdf.workers.image.processing");
     }
 }

@@ -1,7 +1,7 @@
 package com.willcocks.callum.workermanagementservice.rabbitmq.service;
 
-import com.willcocks.callum.workermanagementservice.rabbitmq.service.events.JobCompletedEvent;
-import com.willcocks.callum.workermanagementservice.rabbitmq.service.events.ResponseObtainedEvent;
+import com.willcocks.callum.workermanagementservice.events.ExtractionCompletedEvent;
+import com.willcocks.callum.workermanagementservice.events.ResponseObtainedEvent;
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.manager.ResponsesManager;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
@@ -39,7 +39,7 @@ public class ResponseService {
             return;
         }
 
-        JobCompletedEvent jobCompletedEvent = new JobCompletedEvent(responsesManager);
-        eventPublisher.publishEvent(jobCompletedEvent);
+        ExtractionCompletedEvent extractionCompletedEvent = new ExtractionCompletedEvent(this, responsesManager);
+        eventPublisher.publishEvent(extractionCompletedEvent);
     }
 }

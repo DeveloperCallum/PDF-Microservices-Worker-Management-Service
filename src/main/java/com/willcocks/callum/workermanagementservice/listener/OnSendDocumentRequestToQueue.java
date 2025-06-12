@@ -1,15 +1,21 @@
 package com.willcocks.callum.workermanagementservice.listener;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.willcocks.callum.model.PDFProcessingJob;
+import com.willcocks.callum.model.WebhookCallback;
 import com.willcocks.callum.model.data.Selection;
 import com.willcocks.callum.workermanagementservice.events.PushToQueueEvent;
-import com.willcocks.callum.workermanagementservice.events.SubmitRequestToQueueEvent;
+import com.willcocks.callum.workermanagementservice.events.SubmitDocumentRequestToQueueEvent;
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.ResponseService;
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.manager.DocumentResponseManager;
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.manager.ResponsesManager;
-import com.willcocks.callum.workermanagementservice.rabbitmq.service.WebhookCallback;
 import com.willcocks.callum.workermanagementservice.util.Configuration;
 import dto.extraction.DocumentQueueEntity;
+import org.slf4j.MDC;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
@@ -18,18 +24,20 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 @Component
-public class SubmitDocumentRequestToQueueHandler {
+public class OnSendDocumentRequestToQueue {
     private final ApplicationEventPublisher applicationEventPublisher;
     private ResponseService responseService;
     private DiscoveryClient discoveryClient;
-    public SubmitDocumentRequestToQueueHandler(ApplicationEventPublisher applicationEventPublisher, ResponseService responseService, DiscoveryClient discoveryClient) {
+    private final RabbitTemplate rabbitTemplate;
+    public OnSendDocumentRequestToQueue(ApplicationEventPublisher applicationEventPublisher, ResponseService responseService, DiscoveryClient discoveryClient, RabbitTemplate rabbitTemplate) {
         this.applicationEventPublisher = applicationEventPublisher;
         this.responseService = responseService;
         this.discoveryClient = discoveryClient;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     @EventListener
-    public void handle(SubmitRequestToQueueEvent event) {
+    public void handle(SubmitDocumentRequestToQueueEvent event) throws JsonProcessingException {
         UUID documentUUID = event.getJob().getDocumentUUID();
         PDFProcessingJob rq = event.getJob();
 
@@ -66,7 +74,7 @@ public class SubmitDocumentRequestToQueueHandler {
         }
     }
 
-    private void sendRequestToQueue(UUID documentUUID, String getPdfBase64Document, ResponsesManager<?> responsesManager, Map<Integer, List<Selection>> selections) {
+    private void sendRequestToQueue(UUID documentUUID, String getPdfBase64Document, ResponsesManager<?> responsesManager, Map<Integer, List<Selection>> selections) throws JsonProcessingException {
         UUID jobUUID = UUID.randomUUID();
         DocumentQueueEntity entity = new DocumentQueueEntity(jobUUID, documentUUID, getPdfBase64Document,selections);
         entity.getDocument().setSelection(selections);
@@ -75,7 +83,12 @@ public class SubmitDocumentRequestToQueueHandler {
 
         responsesManager.addExpectedResponse(documentUUID, jobUUID);
 
-        PushToQueueEvent e = new PushToQueueEvent(this, entity);
-        applicationEventPublisher.publishEvent(e);
+        MessageProperties properties = new MessageProperties();
+        properties.setReplyTo("documentProcessingReplyQueue"); // Explicitly set reply queue
+        properties.setHeader("__TypeId__", DocumentQueueEntity.class.getName()); // Tell RabbitMQ the type
+        properties.setHeader("X-Trace-Id", MDC.get("traceId")); //Set the traceId to be used by other requests.
+        properties.setCorrelationId(entity.getJobUUID().toString());
+        Message requestMessage = new Message(new ObjectMapper().writeValueAsBytes(entity), properties);
+        rabbitTemplate.send("myExchange", "pdf.workers.document.processing", requestMessage);
     }
 }

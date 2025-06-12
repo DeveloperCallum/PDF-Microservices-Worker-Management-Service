@@ -9,16 +9,16 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ResponseToQueueHandler {
-    private static final Logger logger = LoggerFactory.getLogger(ResponseToQueueHandler.class);
+public class OnResponseToQueue {
+    private static final Logger logger = LoggerFactory.getLogger(OnResponseToQueue.class);
     private final ResponseService responseService;
 
-    public ResponseToQueueHandler(ResponseService responseService) {
+    public OnResponseToQueue(ResponseService responseService) {
         this.responseService = responseService;
     }
 
     @EventListener
-    public void responseToQueueEventHandler(ResponseFromQueueEvent<SelectionResponseEntity> e){
-        responseService.setResponse(e.getData().getDocumentKey(), e.getData().getJobKey(), e.getData());
+    public void responseToQueueEventHandler(ResponseFromQueueEvent<SelectionResponseEntity> event){
+        responseService.setResponse(event.getData().getDocumentKey(), event.getData().getJobKey(), event.getData());
     }
 }

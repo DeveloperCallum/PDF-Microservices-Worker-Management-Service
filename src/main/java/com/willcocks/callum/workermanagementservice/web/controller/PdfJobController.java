@@ -1,10 +1,12 @@
-package com.willcocks.callum.workermanagementservice.webcontroller;
+package com.willcocks.callum.workermanagementservice.web.controller;
 
 import com.willcocks.callum.eukrea.ServiceResolver;
 import com.willcocks.callum.model.PDFProcessingJob;
+import com.willcocks.callum.workermanagementservice.events.OnSendDocumentRequestToQueue;
 import com.willcocks.callum.workermanagementservice.events.SubmitImageRequestToQueueEvent;
-import com.willcocks.callum.workermanagementservice.events.SubmitRequestToQueueEvent;
+import com.willcocks.callum.workermanagementservice.events.SubmitDocumentRequestToQueueEvent;
 import com.willcocks.callum.model.ImageRequest;
+import dto.DocumentMetaQueueEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.ServiceInstance;
@@ -26,9 +28,7 @@ import java.util.UUID;
 public class PdfJobController {
     private final ApplicationEventPublisher applicationEventPublisher;
     private final DiscoveryClient discoveryClient;
-    private final String getDocumentUUID = "/api/pdf/";
     public static final Logger logger = LoggerFactory.getLogger(PdfJobController.class);
-
     public PdfJobController(ApplicationEventPublisher applicationEventPublisher, DiscoveryClient discoveryClient) {
         this.discoveryClient = discoveryClient;
         this.applicationEventPublisher = applicationEventPublisher;
@@ -36,7 +36,7 @@ public class PdfJobController {
 
     @PostMapping("/extract")
     public ResponseEntity<?> extractPDFPageEndpoint(@RequestBody PDFProcessingJob rq) {
-        SubmitRequestToQueueEvent event = new SubmitRequestToQueueEvent(this, rq);
+        SubmitDocumentRequestToQueueEvent event = new SubmitDocumentRequestToQueueEvent(this, rq);
 
         if (rq.getDocumentUUID() != null){
             if (rq.getBase64Document() == null){ //No Document provided, so lets try and find the document using the UUID.
@@ -67,6 +67,13 @@ public class PdfJobController {
         return ResponseEntity.accepted().body("");
     }
 
+    @PostMapping("/meta")
+    public ResponseEntity<?> getDocumentMetaData(DocumentMetaQueueEntity documentMetaQueueEntity){
+        applicationEventPublisher.publishEvent(new OnSendDocumentRequestToQueue(this, documentMetaQueueEntity));
+        return ResponseEntity.ok("");
+    }
+
+    private final String getDocumentUUID = "/api/pdf/";
     public String getDocumentStringFromDocumentUUID(UUID documentUUID){
         ServiceInstance serviceInstance = ServiceResolver.resolveName(discoveryClient, "EXPRESSJS");
         String getDocumentUUIDWithUUID = getDocumentUUID + documentUUID.toString();
@@ -78,6 +85,7 @@ public class PdfJobController {
     }
 
     private record ReturnedResponse(UUID documentUUID, UUID selectionUUID, String callbackURL, String callbackService){};
+
     private record RetriedDocument(UUID documentUUID, String pdfBase64){};
 
 }

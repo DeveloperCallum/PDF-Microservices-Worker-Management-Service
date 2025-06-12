@@ -1,8 +1,8 @@
 package com.willcocks.callum.workermanagementservice.rabbitmq.service.manager;
 
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.QueueResponse;
-import com.willcocks.callum.workermanagementservice.rabbitmq.service.events.ResponseObtainedEvent;
-import com.willcocks.callum.workermanagementservice.rabbitmq.service.events.ResponseWaitingEvent;
+import com.willcocks.callum.workermanagementservice.events.ResponseObtainedEvent;
+import com.willcocks.callum.workermanagementservice.events.ResponseWaitingEvent;
 import jakarta.annotation.Nonnull;
 import org.springframework.context.ApplicationEventPublisher;
 

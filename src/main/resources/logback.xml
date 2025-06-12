@@ -7,12 +7,15 @@
         </encoder>
     </appender>
 
-    <!-- Loki appender -->
+    <!-- Loki appender using JSON format -->
     <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
         <http>
             <url>http://loki:3100/loki/api/v1/push</url>
         </http>
+
         <format>
+            <type>json</type> <!-- Enable JSON output -->
+
             <label>
                 <pattern>
                     app = WorkerManagementService,
@@ -25,19 +28,23 @@
                     traceId = %mdc{traceId:-none}
                 </structuredMetadataPattern>
             </label>
+
             <message>
-                <pattern>%-5level %logger{20} %msg %ex</pattern>
+                <pattern>
+                    { "ts": "%date{ISO8601}", "level": "%level", "thread": "%thread", "logger": "%logger", "traceId": "%mdc{traceId:-none}", "msg": "%message", "exception": "%ex" }
+                </pattern>
             </message>
         </format>
     </appender>
 
-    <!-- Log everything to both Loki and Console -->
+    <!-- Root logger logs to console only at WARN level -->
     <root level="WARN">
         <appender-ref ref="STDOUT" />
     </root>
 
-    <!-- Log everything to both Loki -->
+    <!-- Logger for your app logs to Loki at TRACE level -->
     <logger name="com.willcocks.callum" level="TRACE">
         <appender-ref ref="LOKI" />
     </logger>
+
 </configuration>

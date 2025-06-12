@@ -1,4 +1,4 @@
-package com.willcocks.callum.workermanagementservice.rabbitmq.service.events;
+package com.willcocks.callum.workermanagementservice.events;
 
 import com.willcocks.callum.workermanagementservice.rabbitmq.service.QueueResponse;
 import org.springframework.context.ApplicationEvent;
