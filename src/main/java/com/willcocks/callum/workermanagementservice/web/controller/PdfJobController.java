@@ -99,14 +99,20 @@ public class PdfJobController {
             String documentString = getDocumentStringFromDocumentUUID(rq.getDocumentUUID());
 
             if (documentString == null){
-                return ResponseEntity.status(404).body("");
+                return ResponseEntity.status(404).body("Document could be not found using UUID");
             }
 
             rq.setBase64Document(documentString);
         }
 
-        applicationEventPublisher.publishEvent(new OnSendDocumentRequestToQueue(this, rq));
-        return ResponseEntity.ok("");
+        try{
+            applicationEventPublisher.publishEvent(new OnSendDocumentRequestToQueue(this, rq));
+        }catch (RuntimeException e){
+            logger.error(e.getMessage(), e);
+        }
+
+        System.out.println("");
+        return ResponseEntity.ok().build();
     }
 
     /**
