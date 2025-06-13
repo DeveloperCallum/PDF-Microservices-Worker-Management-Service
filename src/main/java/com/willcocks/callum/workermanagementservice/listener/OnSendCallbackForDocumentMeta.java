@@ -2,6 +2,7 @@ package com.willcocks.callum.workermanagementservice.listener;
 
 import com.willcocks.callum.model.SendWebhookToService;
 import com.willcocks.callum.workermanagementservice.events.DocumentMetaCompletedEvent;
+import dto.Image;
 import network.DocumentMetaResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,10 +33,16 @@ public class OnSendCallbackForDocumentMeta {
 
         try{
             //Create & send a new webhook
-            SendWebhookToService<DocumentMetaResponse> hook = new SendWebhookToService<>(serviceName, callbackURL, discoveryClient);
-            hook.accept(event.getResponse());
+            DocumentMetaWebhookData webhookData = new DocumentMetaWebhookData(
+                    event.getResponse().getDocumentUUID().toString(),
+                    event.getResponse().getImage());
+
+            SendWebhookToService<DocumentMetaWebhookData> hook = new SendWebhookToService<>(serviceName, callbackURL, discoveryClient);
+            hook.accept(webhookData);
         }catch (RuntimeException e){
             logger.error(e.getMessage(), e);
         }
     }
+
+    private record DocumentMetaWebhookData(String documentUUID, Image imageMeta){}
 }
